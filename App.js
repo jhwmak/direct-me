@@ -73,15 +73,26 @@ export default class App extends React.Component {
                 }
               ]
             })
-          }).then((response) => {
-
-          	this.setState({ text: JSON.stringify(response) });
-          })
-        	});
+          }).then((response) => response.json()).then((responseJSON) => {
+			  var mydata = responseJSON; //store JSON data as js object
+			  var re = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/;
+			  var url = "";
+			  for(var i = 0; i < mydata["responses"][0]["textAnnotations"].length; i++) {
+		        if(re.test(mydata["responses"][0]["textAnnotations"][i]["description"])) {
+				  url = mydata["responses"][0]["textAnnotations"][i]["description"];
+				}
+		      }
+		      if (url.slice(0, 4) !== 'http') {
+	          	url = 'https://' + url
+	          }
+	          Linking.openURL(url);
+	          this.setState({takenPicture: false, text: 'Analyze'})
+	        })//}
         });
-      }
+      })
     }
   }
+}
 
 
 
