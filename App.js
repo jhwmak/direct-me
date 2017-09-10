@@ -1,6 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Linking } from 'react-native';
+import { ImageStore, ImageEditor } from 'react-native';
+import { Image as img } from 'react-native';
 import { Camera, Permissions } from 'expo';
+
+// "I'm hard" - Jonathan
 
 export default class App extends React.Component {
 
@@ -18,14 +22,44 @@ export default class App extends React.Component {
     this.setState({ hasCameraPermission: status === 'granted' });
   }
 
+  get64string(image_uri, cb) {
+  	var ___sadfasdf = this
+  	const cropData = {
+	    offset: {x:0,y:0},
+	    size: {width:20, height:20},
+	  };
+
+	  const size = img.getSize(image_uri, (width, height) => {
+	  	const cropData = {
+	      offset:{x:0,y:0},
+	      size:{width: width, height: height},
+	    };
+	    ImageEditor.cropImage(image_uri, cropData, (uri) => {
+	      ImageStore.getBase64ForTag(uri, (stuff) => {
+	      	cb(stuff);
+	      }, (err) => {
+              console.log(err);
+             cb('asdf1');
+            });
+          }, (err) => {
+            console.log(err);
+            cb('asdf2');
+          });
+        }, (err) => {
+          console.log(err);
+          cb('asdf3');
+        });
+  }
+
   takeImage() {
     if (!this.state.takenPicture) {
-      this.state.takenPicture = true;
-      this.setState({ text: 'Analyze' });
+      this.setState({ takenPicture: true });
       if (this.camera) {
         this.setState({ text: "Working..."})
         this.camera.takePictureAsync().then((image_uri) => {
-          this.setState({ text: image_uri, takenPicture: false });
+        	this.get64string(image_uri, (image_string) => {
+        		this.setState({ text: image_string.slice(0, 100) });
+
           fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDYS0lJLIALU-kBZsJqlyjNGGhkVnmo9wM', {
             method: 'POST',
             headers: {
@@ -35,9 +69,7 @@ export default class App extends React.Component {
               "requests": [
                 {
                   "image": {
-                    "source": {
-                      "imageUri": "https://www.bluescentric.com/images/product/large/245.jpg"
-                    }
+                    "content": image_string
                   },
                   "features": [
                     {
@@ -48,8 +80,9 @@ export default class App extends React.Component {
               ]
             })
           }).then((response) => {
-            this.setState({ text: response })
+          	this.setState({ text: JSON.stringify(response) });
           })
+        	});
         });
       }
     }
