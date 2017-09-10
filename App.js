@@ -23,7 +23,6 @@ export default class App extends React.Component {
   }
 
   get64string(image_uri, cb) {
-  	var ___sadfasdf = this
   	const cropData = {
 	    offset: {x:0,y:0},
 	    size: {width:20, height:20},
@@ -39,16 +38,13 @@ export default class App extends React.Component {
 	      	cb(stuff);
 	      }, (err) => {
               console.log(err);
-             cb('asdf1');
             });
           }, (err) => {
             console.log(err);
-            cb('asdf2');
           });
         }, (err) => {
           console.log(err);
-          cb('asdf3');
-        });
+       });
   }
 
   takeImage() {
@@ -58,8 +54,6 @@ export default class App extends React.Component {
         this.setState({ text: "Working..."})
         this.camera.takePictureAsync().then((image_uri) => {
         	this.get64string(image_uri, (image_string) => {
-        		this.setState({ text: image_string.slice(0, 100) });
-
           fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDYS0lJLIALU-kBZsJqlyjNGGhkVnmo9wM', {
             method: 'POST',
             headers: {
@@ -80,6 +74,7 @@ export default class App extends React.Component {
               ]
             })
           }).then((response) => {
+
           	this.setState({ text: JSON.stringify(response) });
           })
         	});
