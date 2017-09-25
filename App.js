@@ -4,7 +4,7 @@ import { ImageStore, ImageEditor } from 'react-native';
 import { Image as img } from 'react-native';
 import { Camera, Permissions } from 'expo';
 
-// "I'm hard" - Jonathan
+// "__ ____" - Jonathan
 
 export default class App extends React.Component {
 
@@ -13,21 +13,18 @@ export default class App extends React.Component {
     this.state = {
         hasCameraPermission: null,
         takenPicture: false,
-        text: "Analyze"
+        text: "Analyze",
+        url: null
     };
   }
 
   async componentWillMount() {
     const { status } = await Permissions.askAsync(Permissions.CAMERA);
     this.setState({ hasCameraPermission: status === 'granted' });
+    this.setState({ url: "https://vision.googleapis.com/v1/images"})
   }
 
   get64string(image_uri, cb) {
-  	const cropData = {
-	    offset: {x:0,y:0},
-	    size: {width:20, height:20},
-	  };
-
 	  const size = img.getSize(image_uri, (width, height) => {
 	  	const cropData = {
 	      offset:{x:0,y:0},
@@ -54,7 +51,7 @@ export default class App extends React.Component {
         this.setState({ text: "Working..."})
         this.camera.takePictureAsync().then((image_uri) => {
         	this.get64string(image_uri, (image_string) => {
-          fetch('https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDYS0lJLIALU-kBZsJqlyjNGGhkVnmo9wM', {
+          fetch(this.state.url, {
             method: 'POST',
             headers: {
               "Content-Type": "application/json"
@@ -87,14 +84,12 @@ export default class App extends React.Component {
 	          }
 	          Linking.openURL(url);
 	          this.setState({takenPicture: false, text: 'Analyze'})
-	        })//}
+	        })
         });
       })
     }
   }
 }
-
-
 
   render() {
     const { hasCameraPermission } = this.state;
